@@ -3,7 +3,7 @@
 import sqlite3
 import logging
 
-from Config import Config
+from config import Config
 
 config = Config()
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=str(config.LOG_LEVEL))

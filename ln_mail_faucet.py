@@ -10,8 +10,8 @@ from pylnbits.user_wallet import UserWallet
 from datetime import datetime
 from pylnbits.config import Config as LNBitsConfig
 
-from SendResponse import SendResponse
-from Config import Config
+from mail_response import SendResponse
+from config import Config
 from faucet_db_operations import Database
 
 config = Config()
