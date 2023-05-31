@@ -138,14 +138,16 @@ async def main():
 
 
                         # Extract the Lightning Invoice from the message
+                        ln_invoice =''
                         ln_invoice = extract_lightning_invoice_from_email(message_str)
                         str(ln_invoice)
-                        if ln_invoice.startswith('lnbc'):
+                        if ln_invoice is not None and ln_invoice.startswith('lnbc'):
                             log.info("Lightning Invoice found:")
                             log.info(ln_invoice)
                         else:
                             #decoded_email_content = base64.b64decode(message_str).decode()
                             log.info('Mail contains no Lightning Invoice')
+
 
                         log.info(f'Clean LN Invoice:' + ln_invoice)
                         decoded = await uw.get_decoded(ln_invoice)
