@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import email
 import imaplib
 import logging
@@ -24,6 +25,42 @@ database = Database()
 database.create_table()
 
 
+def extract_lightning_invoice_from_email(email_content):
+    msg = email.message_from_string(email_content)
+
+    # Prüfen, ob die E-Mail mehrere Teile hat
+    if msg.is_multipart():
+        for part in msg.walk():
+            # Überprüfen, ob der Teil Text enthält
+            if part.get_content_type() == 'text/plain' or part.get_content_type() == 'text/html':
+                text = part.get_payload(decode=True).decode()
+                lightning_invoice = extract_lightning_invoice_from_text(text)
+                if lightning_invoice:
+                    return lightning_invoice
+    else:
+        # Wenn die E-Mail nur einen Teil hat
+        text = msg.get_payload(decode=True).decode()
+        lightning_invoice = extract_lightning_invoice_from_text(text)
+        if lightning_invoice:
+            return lightning_invoice
+
+    return None
+
+
+def extract_lightning_invoice_from_text(text):
+    pattern = r"=\n"
+    message_str = re.sub(pattern, "", text)
+    message_str = message_str[message_str.find('lnbc'):]
+    ln_invoice = message_str.split('\n', 1)[0]
+    return ln_invoice
+    # Regulärer Ausdruck zum Extrahieren der Lightning Invoice
+    #regex = r'ln\w{1,100}'
+    #matches = re.findall(regex, text)
+    #if matches:
+    #    return matches[0]
+
+    #return None
+
 async def main():
     # INITIALIZE the pylnbits with your config file
     c = LNBitsConfig(in_key=config.LNBITS_IN_KEY, admin_key=config.LNBITS_ADMIN_KEY, lnbits_url=config.LNBITS_URL)
@@ -38,13 +75,20 @@ async def main():
         user_wallet = await uw.get_wallet_details()
         log.info(f"user wallet info : {user_wallet}")
 
+        # Reading E-Mails as documented and described unter:
+        # https://humberto.io/blog/sending-and-receiving-emails-with-python/
         while True:
-            mail = imaplib.IMAP4_SSL(config.MAIL_SERVER)
-            mail.login(config.EMAIL_ADDRESS, config.EMAIL_PASSWORD)
-            mail.select('inbox')
 
-            # status, data = mail.search(None, 'ALL')
-            status, data = mail.search(None, '(UNSEEN)')
+            try:
+                mail = imaplib.IMAP4_SSL(config.MAIL_SERVER)
+                mail.login(config.EMAIL_ADDRESS, config.EMAIL_PASSWORD)
+                mail.select('inbox')
+
+                #status, data = mail.search(None, 'ALL')
+                status, data = mail.search(None, '(UNSEEN)')
+            except:
+                log.error('Problem connecting Mailbox - we try again!')
+
 
             # the list returned is a list of bytes separated
             # by white spaces on this format: [b'1 2 3', b'4 5 6']
@@ -59,11 +103,8 @@ async def main():
                 # b'1 2 3'.split() => [b'1', b'2', b'3']
                 mail_ids += block.split()
 
-            # now for every id we'll fetch the email
-            # to extract its content
             for i in mail_ids:
-                # the fetch function fetch the email given its id
-                # and format that you want the message to be
+
                 status, data = mail.fetch(i, '(RFC822)')
 
                 # the content data at the '(RFC822)' format comes on
@@ -77,41 +118,34 @@ async def main():
                         # at the third
                         message = email.message_from_bytes(response_part[1])
 
-                        # with the content we can extract the info about
-                        # who sent the message and its subject
                         mail_from = message['from']
                         mail_subject = message['subject']
 
-                        # Suche nach Übereinstimmungen mit dem regulären Ausdruck
+                        # We need also the plain e-mail address
                         match = re.search(r'<(.*?)>', mail_from)
 
-                        # Extrahiere den gefundenen Text
                         if match:
                             email_only = match.group(1)
                         else:
                             email_only = mail_from
 
-                        ln_invoice = str(message)
+                        log.info(f'From: {mail_from}')
+                        log.info(f'EMail only: {email_only}')
+                        log.info(f'Subject: {mail_subject}')
 
-                        # Remove everything before lnbc
-                        ln_invoice = ln_invoice[ln_invoice.find('lnbc'):]
+                        # Since messages from different mail clients can be
+                        message_str = str(message)
 
-                        # todo check different line breaks
-                        # Remove everything after linebreak
-                        pattern = r"=\n"
-                        ln_invoice = re.sub(pattern, "", ln_invoice)
-                        ln_invoice = ln_invoice.split('\n', 1)[0]
 
-                        # and then let's show its result
-                        logging.info(f'From: {mail_from}')
-                        logging.info(f'EMail only: {email_only}')
-                        logging.info(f'Subject: {mail_subject}')
-
-                        # Remove everything after linebreak
-                        # todo wie ich machen, dass nur die Split nach dem gleich heraus genommen werden.
-                        # ln_invoice = ln_invoice.split('>', 1)[0]
-                        # ln_invoice = ln_invoice.split('\r\n', 1)[0]
-                        # ln_invoice = ln_invoice.split('\n', 1)[0]
+                        # Extract the Lightning Invoice from the message
+                        ln_invoice = extract_lightning_invoice_from_email(message_str)
+                        str(ln_invoice)
+                        if ln_invoice.startswith('lnbc'):
+                            log.info("Lightning Invoice found:")
+                            log.info(ln_invoice)
+                        else:
+                            #decoded_email_content = base64.b64decode(message_str).decode()
+                            log.info('Mail contains no Lightning Invoice')
 
                         log.info(f'Clean LN Invoice:' + ln_invoice)
                         decoded = await uw.get_decoded(ln_invoice)
@@ -129,10 +163,11 @@ async def main():
                             if 'amount_msat' in decoded:
                                 amount = int(int(decoded['amount_msat']) / 1000)
                             if amount == 0:
-                                log.info('Amount 0 or not specificated: ' + str(amount))
+                                log.info('Amount 0 or not set: ' + str(amount))
                                 sendmail.send_response(mail_from, 'AMOUNT_ZERO',
                                                        database.getTotalAmountOfUser(email_only),
                                                        database.getTotalPayedSats(), database.getNumberOfUsers())
+                            #todo but to high amount toghter
                             elif amount <= int(config.MAX_AMOUNT):
                                 log.info('Amount lower than total max: ' + str(amount))
                                 amount_of_user = database.getTotalAmountOfUser(email_only)
@@ -167,8 +202,7 @@ async def main():
                                                    0,
                                                    0, 0)
 
-        time.sleep(1)
-
+            time.sleep(1)
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
