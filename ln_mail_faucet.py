@@ -48,16 +48,25 @@ def extract_lightning_invoice_from_email(email_content):
 
 
 def extract_lightning_invoice_from_text(text):
-    pattern = r"=\n"
-    message_str = re.sub(pattern, "", text)
-    message_str = message_str[message_str.find('lnbc'):]
-    ln_invoice = message_str.split('\n', 1)[0]
+    message_str = text[text.find('lnbc'):]
+    # split the string into lines
+    lines = message_str.splitlines()
+    # take the first line
+    ln_invoice = lines[0] if lines else None
+    ln_invoice = trim_invoice_string(ln_invoice) if ln_invoice else None
     return ln_invoice
-    # Regulärer Ausdruck zum Extrahieren der Lightning Invoice
-    #regex = r'ln\w{1,100}'
-    #matches = re.findall(regex, text)
-    #if matches:
-    #    return matches[0]
+
+def trim_invoice_string(s):
+    # Checks if there's an uppercase letter in the first 30 characters
+    if not re.search(r'[A-Z]', s[:30]):
+        # If no uppercase letter is found, it searches for an uppercase letter in the entire string
+        match = re.search(r'[A-Z]', s)
+        if match:
+            # If an uppercase letter is found, the code cuts the string starting from that uppercase letter
+            return s[:match.start()]
+
+    # If there's an uppercase letter in the first 30 characters or if no uppercase letter is found in the entire string, the original string is returned
+    return s
 
     #return None
 
