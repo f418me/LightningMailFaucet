@@ -27,16 +27,12 @@ class SendResponse:
             with open('success_message.html') as f:
                 html_content = f.readlines()
         elif message_type == 'AMOUNT_TO_HIGH':
-            subject = 'Amount to high'
+            subject = 'Amount of invoice to high'
             with open('amount_to_high_message.html') as f:
                 html_content = f.readlines()
         elif message_type == 'AMOUNT_ZERO':
             subject = 'Invoice amount is not set or zero'
             with open('amount_zero_message.html') as f:
-                html_content = f.readlines()
-        elif message_type == 'MAX_AMOUNT':
-            subject = 'Amount of invoice to high!'
-            with open('max_amount_message.html') as f:
                 html_content = f.readlines()
         else:
             subject = 'Sorry, something went wrong!'

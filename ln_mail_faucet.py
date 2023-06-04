@@ -171,6 +171,7 @@ async def main():
 
                         if is_valid:
                             amount = 0
+                            amount_of_user = database.getTotalAmountOfUser(email_only)
                             if 'amount_msat' in decoded:
                                 amount = int(int(decoded['amount_msat']) / 1000)
                             if amount == 0:
@@ -178,35 +179,26 @@ async def main():
                                 sendmail.send_response(mail_from, 'AMOUNT_ZERO',
                                                        database.getTotalAmountOfUser(email_only),
                                                        database.getTotalPayedSats(), database.getNumberOfUsers())
-                            #todo but to high amount toghter
-                            elif amount <= int(config.MAX_AMOUNT):
-                                log.info('Amount lower than total max: ' + str(amount))
-                                amount_of_user = database.getTotalAmountOfUser(email_only)
+                            elif amount_of_user + amount <= int(config.MAX_AMOUNT):
+                                bolt = ln_invoice
+                                body = {"out": True, "bolt11": bolt}
+                                res = await uw.pay_invoice(True, bolt)
 
-                                if amount_of_user + amount >= int(config.MAX_AMOUNT):
-                                    sendmail.send_response(mail_from, 'AMOUNT_TO_HIGH',
+                                if 'payment_hash' in res:
+                                    database.addPayment(email_only, amount, datetime.now())
+                                    sendmail.send_response(mail_from, 'SUCCESSFUL',
                                                            database.getTotalAmountOfUser(email_only),
                                                            database.getTotalPayedSats(), database.getNumberOfUsers())
                                 else:
-                                    bolt = ln_invoice
-                                    body = {"out": True, "bolt11": bolt}
-                                    res = await uw.pay_invoice(True, bolt)
-
-                                    if 'payment_hash' in res:
-                                        database.addPayment(email_only, amount, datetime.now())
-                                        sendmail.send_response(mail_from, 'SUCCESSFUL',
-                                                               database.getTotalAmountOfUser(email_only),
-                                                               database.getTotalPayedSats(), database.getNumberOfUsers())
-                                    else:
-                                        sendmail.send_response(mail_from, 'WRONG',
-                                                               0,
-                                                               0, 0)
+                                    sendmail.send_response(mail_from, 'WRONG',
+                                                           0,
+                                                           0, 0)
 
                             else:
                                 log.debug('Amount to high: ' + str(amount))
-                                sendmail.send_response(mail_from, 'MAX_AMOUNT',
-                                                       0,
-                                                       0, 0)
+                                sendmail.send_response(mail_from, 'AMOUNT_TO_HIGH',
+                                                       database.getTotalAmountOfUser(email_only),
+                                                       database.getTotalPayedSats(), database.getNumberOfUsers())
                         else:
                             log.info('No Payment done')
                             sendmail.send_response(mail_from, 'WRONG',
