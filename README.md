@@ -76,10 +76,6 @@ Generating vouchers in large quantities by the GUI is painful. Therefore you can
 
 
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -95,8 +91,6 @@ Generating vouchers in large quantities by the GUI is painful. Therefore you can
    ```sh
    pip install -r requirements.txt
    ```
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- USAGE EXAMPLES -->
@@ -109,9 +103,6 @@ Than just run the script in the background.
  ```sh
    nohup python main.py &
    ```
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 <!-- ROADMAP -->
 ## Roadmap
@@ -123,9 +114,6 @@ Than just run the script in the background.
 
 
 See the [open issues](https://github.com/f418me/LightningMailFaucet/issues) for a full list of proposed features (and known issues).
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- CONTRIBUTING -->
@@ -141,17 +129,12 @@ If you have a suggestion that would make this better, please fork the repo and c
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- LICENSE -->
 ## License
 
 LightningMailFaucet is released under the terms of the MIT license. See [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT) for further information.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- CONTACT -->
@@ -160,8 +143,6 @@ LightningMailFaucet is released under the terms of the MIT license. See [https:/
 f418.me - [f418_me](https://twitter.com/f418_me) - info@f418.me
 
 Project Link: [https://github.com/f418me/LNBitsVoucherGenerator](https://github.com/f418me/LightningMailFaucet)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
