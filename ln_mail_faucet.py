@@ -1,5 +1,4 @@
 import asyncio
-import base64
 import email
 import imaplib
 import logging
@@ -56,6 +55,7 @@ def extract_lightning_invoice_from_text(text):
     ln_invoice = trim_invoice_string(ln_invoice) if ln_invoice else None
     return ln_invoice
 
+
 def trim_invoice_string(s):
     # Checks if there's an uppercase letter in the first 30 characters
     if not re.search(r'[A-Z]', s[:30]):
@@ -68,7 +68,6 @@ def trim_invoice_string(s):
     # If there's an uppercase letter in the first 30 characters or if no uppercase letter is found in the entire string, the original string is returned
     return s
 
-    #return None
 
 async def main():
     # INITIALIZE the pylnbits with your config file
@@ -154,8 +153,8 @@ async def main():
                             log.info("Lightning Invoice found:")
                             log.info(ln_invoice)
                         else:
-                            #decoded_email_content = base64.b64decode(message_str).decode()
                             log.info('Mail contains no Lightning Invoice')
+                            ln_invoice = ''
 
 
                         log.info(f'Clean LN Invoice:' + ln_invoice)

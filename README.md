@@ -10,9 +10,9 @@ Email Faucet, which pays Bitcoin Lightning invoices instantly.
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
 
-<!-- PROJECT LOGO -->
+
 <br />
-<div align="center">
+<div>
   <a href="https://github.com/f418me/LightningMailFaucet">
     <img src="https://f418.me/wp-content/uploads/2023/06/offenes_netzwerk.jpg" alt="Logo" width="500" height="300">
   </a>
@@ -101,7 +101,7 @@ Maybe you also like to change the design and the text of mail responses.
 Than just run the script in the background.
 
  ```sh
-   nohup python main.py &
+   nohup python ln_mail_faucet.py &
    ```
 
 <!-- ROADMAP -->
