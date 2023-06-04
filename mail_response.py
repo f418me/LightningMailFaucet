@@ -1,5 +1,4 @@
 from smtplib import SMTP_SSL
-from pathlib import Path
 
 from redmail import EmailSender, gmail
 import logging
