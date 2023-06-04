@@ -14,7 +14,7 @@ Email Faucet, which pays Bitcoin Lightning invoices instantly.
 <br />
 <div align="center">
   <a href="https://github.com/f418me/LightningMailFaucet">
-    <img src="https://f418.me/wp-content/uploads/2022/08/bild_qr.jpg" alt="Logo" width="500" height="300">
+    <img src="https://f418.me/wp-content/uploads/2023/06/offenes_netzwerk.jpg" alt="Logo" width="500" height="300">
   </a>
 
   <h3 align="center">LightningMailFaucet</h3>
