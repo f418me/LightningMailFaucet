@@ -1,4 +1,5 @@
 from smtplib import SMTP_SSL
+from pathlib import Path
 
 from redmail import EmailSender, gmail
 import logging
@@ -55,8 +56,7 @@ class SendResponse:
                 receivers=to_emails,
                 html=html_string,
                 body_images={
-                    'logo': 'f418me_200.jpg',
-
+                    'logo': 'f418me_200.jpg'
                 },
                 body_params={
                     'user_amount': user_amount,
