@@ -7,7 +7,7 @@ from config import Config
 
 # Todo https://stackoverflow.com/questions/13733552/logger-configuration-to-log-to-file-and-print-to-stdout
 config = Config()
-logging.basicConfig(filename='LNMailFaucet.log', format='%(asctime)s - %(levelname)s - %(message)s', level=str(config.LOG_LEVEL))
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=str(config.LOG_LEVEL))
 log = logging.getLogger(__name__)
 log.setLevel(config.LOG_LEVEL_INT)
 
