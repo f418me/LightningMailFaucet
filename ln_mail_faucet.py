@@ -85,10 +85,12 @@ def trim_invoice_string(s):
 
 def check_email_domain(email, domain_list):
     email_domain = email.split('@')[-1]
+    email_domain = email_domain.split('>', 1)[0] if '>' in email_domain else email_domain
+    log.info(f"email_domain: {email_domain}")
     if email_domain in domain_list:
-        return True
-    else:
         return False
+    else:
+        return True
 
 
 async def main():
