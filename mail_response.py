@@ -38,6 +38,10 @@ class SendResponse:
             subject = 'Sorry, your domain is blacklisted!'
             with open('not_allowed_message.html') as f:
                 html_content = f.readlines()
+        elif message_type == 'EMAIL_NOT_VALID':
+            subject = 'Sorry, your e-mail address contains an alias!'
+            with open('email_not_valid_message.html') as f:
+                html_content = f.readlines()
         else:
             subject = 'Sorry, something went wrong!'
             with open('failure_message.html') as f:
