@@ -223,15 +223,22 @@ async def main():
                                                                        database.getTotalPayedSats(),
                                                                        database.getNumberOfUsers())
                                             else:
+                                                log.info('Payment could not be don. Response is: ' + res)
                                                 sendmail.send_response(mail_from, 'WRONG',
                                                                        0,
                                                                        0, 0)
 
                                         else:
-                                            log.debug('Amount to high: ' + str(amount))
+                                            log.info('Amount to high: ' + str(amount))
                                             sendmail.send_response(mail_from, 'AMOUNT_TO_HIGH',
                                                                    database.getTotalAmountOfUser(email_only),
                                                                    database.getTotalPayedSats(), database.getNumberOfUsers())
+
+                                    else:
+                                        log.info('No Payment done')
+                                        sendmail.send_response(mail_from, 'WRONG',
+                                                               0,
+                                                               0, 0)
 
                             else:
                                 log.info('Domain is NOT allowed')
@@ -240,16 +247,12 @@ async def main():
                                                        0, 0)
 
                         else:
-                            log.info('No Payment done')
+                            log.info('EMail not valid')
                             sendmail.send_response(mail_from, 'EMAIL_NOT_VALID',
                                                    0,
                                                    0, 0)
 
-                    else:
-                        log.info('No Payment done')
-                        sendmail.send_response(mail_from, 'WRONG',
-                                               0,
-                                               0, 0)
+
 
             time.sleep(1)
 
