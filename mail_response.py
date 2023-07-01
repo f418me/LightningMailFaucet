@@ -34,9 +34,13 @@ class SendResponse:
             subject = 'Invoice amount is not set or zero'
             with open('amount_zero_message.html') as f:
                 html_content = f.readlines()
-        elif message_type == 'NOT_ALLOWED':
+        elif message_type == 'DOMAIN_NOT_ALLOWED':
             subject = 'Sorry, your domain is blacklisted!'
-            with open('not_allowed_message.html') as f:
+            with open('domain_not_allowed_message.html') as f:
+                html_content = f.readlines()
+        elif message_type == 'PROVIDER_NOT_ALLOWED':
+            subject = 'Sorry, your mail provider is blacklisted!'
+            with open('provider_allowed_message.html') as f:
                 html_content = f.readlines()
         elif message_type == 'EMAIL_NOT_VALID':
             subject = 'Sorry, your e-mail address contains an alias!'

@@ -56,9 +56,9 @@ def extract_lightning_lnurlp_from_text(text):
     # split the string into lines
     lines = message_str.splitlines()
     # take the first line
-    ln_invoice = lines[0] if lines else None
-    ln_invoice = trim_invoice_string(ln_invoice) if ln_invoice else None
-    return ln_invoice
+    lnurlp = lines[0] if lines else None
+    lnurlp = trim_invoice_string(lnurlp) if lnurlp else None
+    return lnurlp
 
 
 def extract_lightning_invoice_from_text(text):
@@ -83,7 +83,7 @@ def trim_invoice_string(s):
     # If there's an uppercase letter in the first 30 characters or if no uppercase letter is found in the entire string, the original string is returned
     return s
 
-def check_email_domain(email, domain_list):
+def check_email_provider(email, domain_list):
     email_domain = email.split('@')[-1]
     email_domain = email_domain.split('>', 1)[0] if '>' in email_domain else email_domain
     log.info(f"email_domain: {email_domain}")
@@ -91,6 +91,20 @@ def check_email_domain(email, domain_list):
         return False
     else:
         return True
+
+
+def check_email_domain(mail_from, domains):
+    # E-Mail-Domain extrahieren
+    mail_domain = mail_from.split('@')[-1].split('.')[-1]
+
+    # Erlaubte Domains in eine Liste umwandeln
+    allowed_domains = domains.split(',')
+
+    # Überprüfen, ob die E-Mail-Domain in der Liste der erlaubten Domains enthalten ist
+    if mail_domain in allowed_domains:
+        return True
+    else:
+        return False
 
 def is_valid_email(email):
     pattern = r"[^+]+@[^\s@]+\.[^\s@]+"
@@ -174,77 +188,86 @@ async def main():
 
                         if is_valid_email(email_only):
 
-                            if check_email_domain(mail_from, domain_list):
-                                    log.info('Domain is allowed')
-                                    # Since messages from different mail clients can be
-                                    message_str = str(message)
+                            if check_email_domain(mail_from, config.DOMAINS):
 
-                                    # Extract the Lightning Invoice from the message
-                                    ln_invoice = ''
-                                    ln_invoice = extract_lightning_invoice_from_email(message_str)
-                                    str(ln_invoice)
-                                    if ln_invoice is not None and ln_invoice.startswith('lnbc'):
-                                        log.info("Lightning Invoice found:")
-                                        log.info(ln_invoice)
-                                    else:
-                                        log.info('Mail contains no Lightning Invoice')
+                                if check_email_provider(mail_from, domain_list):
+                                        log.info('Domain is allowed')
+                                        # Since messages from different mail clients can be
+                                        message_str = str(message)
+
+                                        # Extract the Lightning Invoice from the message
                                         ln_invoice = ''
+                                        ln_invoice = extract_lightning_invoice_from_email(message_str)
+                                        str(ln_invoice)
+                                        if ln_invoice is not None and ln_invoice.startswith('lnbc'):
+                                            log.info("Lightning Invoice found:")
+                                            log.info(ln_invoice)
+                                        else:
+                                            log.info('Mail contains no Lightning Invoice')
+                                            ln_invoice = ''
 
-                                    log.info(f'Clean LN Invoice:' + ln_invoice)
-                                    decoded = await uw.get_decoded(ln_invoice)
-                                    log.debug(decoded)
+                                        log.info(f'Clean LN Invoice:' + ln_invoice)
+                                        decoded = await uw.get_decoded(ln_invoice)
+                                        log.debug(decoded)
 
-                                    if 'message' in decoded:
-                                        if decoded['message'] == 'Failed to decode':
-                                            logging.warning(F'Invoice decoding failed with message: ' + decoded['message'])
-                                            is_valid = False
-                                    else:
-                                        is_valid = True
+                                        if 'message' in decoded:
+                                            if decoded['message'] == 'Failed to decode':
+                                                logging.warning(F'Invoice decoding failed with message: ' + decoded['message'])
+                                                is_valid = False
+                                        else:
+                                            is_valid = True
 
-                                    if is_valid:
-                                        amount = 0
-                                        amount_of_user = database.getTotalAmountOfUser(email_only)
-                                        if 'amount_msat' in decoded:
-                                            amount = int(int(decoded['amount_msat']) / 1000)
-                                        if amount == 0:
-                                            log.info('Amount 0 or not set: ' + str(amount))
-                                            sendmail.send_response(mail_from, 'AMOUNT_ZERO',
-                                                                   database.getTotalAmountOfUser(email_only),
-                                                                   database.getTotalPayedSats(), database.getNumberOfUsers())
-                                        elif amount_of_user + amount <= int(config.MAX_AMOUNT):
-                                            bolt = ln_invoice
-                                            body = {"out": True, "bolt11": bolt}
-                                            res = await uw.pay_invoice(True, bolt)
-
-                                            if 'payment_hash' in res:
-                                                database.addPayment(email_only, amount, datetime.now())
-                                                sendmail.send_response(mail_from, 'SUCCESSFUL',
+                                        if is_valid:
+                                            amount = 0
+                                            amount_of_user = database.getTotalAmountOfUser(email_only)
+                                            if 'amount_msat' in decoded:
+                                                amount = int(int(decoded['amount_msat']) / 1000)
+                                            if amount == 0:
+                                                log.info('Amount 0 or not set: ' + str(amount))
+                                                sendmail.send_response(mail_from, 'AMOUNT_ZERO',
                                                                        database.getTotalAmountOfUser(email_only),
-                                                                       database.getTotalPayedSats(),
-                                                                       database.getNumberOfUsers())
+                                                                       database.getTotalPayedSats(), database.getNumberOfUsers())
+                                            elif amount_of_user + amount <= int(config.MAX_AMOUNT):
+                                                bolt = ln_invoice
+                                                body = {"out": True, "bolt11": bolt}
+                                                res = await uw.pay_invoice(True, bolt)
+
+                                                if 'payment_hash' in res:
+                                                    database.addPayment(email_only, amount, datetime.now())
+                                                    sendmail.send_response(mail_from, 'SUCCESSFUL',
+                                                                           database.getTotalAmountOfUser(email_only),
+                                                                           database.getTotalPayedSats(),
+                                                                           database.getNumberOfUsers())
+                                                else:
+                                                    log.info('Payment could not be don. Response is: ' + res)
+                                                    sendmail.send_response(mail_from, 'WRONG',
+                                                                           0,
+                                                                           0, 0)
+
                                             else:
-                                                log.info('Payment could not be don. Response is: ' + res)
-                                                sendmail.send_response(mail_from, 'WRONG',
-                                                                       0,
-                                                                       0, 0)
+                                                log.info('Amount to high: ' + str(amount))
+                                                sendmail.send_response(mail_from, 'AMOUNT_TO_HIGH',
+                                                                       database.getTotalAmountOfUser(email_only),
+                                                                       database.getTotalPayedSats(), database.getNumberOfUsers())
 
                                         else:
-                                            log.info('Amount to high: ' + str(amount))
-                                            sendmail.send_response(mail_from, 'AMOUNT_TO_HIGH',
-                                                                   database.getTotalAmountOfUser(email_only),
-                                                                   database.getTotalPayedSats(), database.getNumberOfUsers())
+                                            log.info('No Payment done')
+                                            sendmail.send_response(mail_from, 'WRONG',
+                                                                   0,
+                                                                   0, 0)
 
-                                    else:
-                                        log.info('No Payment done')
-                                        sendmail.send_response(mail_from, 'WRONG',
-                                                               0,
-                                                               0, 0)
+                                else:
+                                    log.info('E-Mail Provider is NOT allowed')
+                                    sendmail.send_response(mail_from, 'PROVIDER_NOT_ALLOWED',
+                                                           0,
+                                                           0, 0)
 
                             else:
                                 log.info('Domain is NOT allowed')
-                                sendmail.send_response(mail_from, 'NOT_ALLOWED',
+                                sendmail.send_response(mail_from, 'DOMAIN_NOT_ALLOWED',
                                                        0,
                                                        0, 0)
+
 
                         else:
                             log.info('EMail not valid')

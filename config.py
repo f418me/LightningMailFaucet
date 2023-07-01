@@ -7,6 +7,7 @@ class Config:
 
         self.MAX_AMOUNT = os.getenv('MAX_AMOUNT')
         self.LOG_LEVEL = os.getenv('LOG_LEVEL')
+        self.DOMAINS = os.getenv("DOMAINS")
 
         log_level = {'DEBUG': logging.DEBUG, 'INFO': logging.INFO, 'WARNING': logging.WARNING, 'ERROR': logging.ERROR, 'CRITICAL': logging.CRITICAL }
 
