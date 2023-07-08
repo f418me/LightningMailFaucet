@@ -95,10 +95,12 @@ def check_email_provider(email, domain_list):
 
 def check_email_domain(mail_from, domains):
     # E-Mail-Domain extrahieren
-    mail_domain = mail_from.split('@')[-1].split('.')[-1]
+    mail_domain = mail_from.split('@')[-1].split('.')[-1].split('>')[0]
 
     # Erlaubte Domains in eine Liste umwandeln
     allowed_domains = domains.split(',')
+    log.debug(f"mail_domain: {mail_domain}")
+    log.debug(f"allowed_domains: {allowed_domains}")
 
     # Überprüfen, ob die E-Mail-Domain in der Liste der erlaubten Domains enthalten ist
     if mail_domain in allowed_domains:
