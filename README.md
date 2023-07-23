@@ -60,21 +60,15 @@ Email Faucet, which pays Bitcoin Lightning invoices instantly.
 <!-- 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 -->
+During Lightning Workshops we often use a faucet to give the participants some satoshis to play around with.
 
-LNbits a free and open-source lightning wallet that offers a lot of extension. 
-LNbits can run on any lightning-network funding source, currently supporting LND, c-lightning, OpenNode, lntxbot, LNPay and even LNbits itself!
+There are other possibility to do that with LNURL-withdraw QR-Codes. But we recognized that it is better to first only use the protocol layer when explaining the lightning network.
+Therefore we decided to use a faucet which can pay invoices directly.
 
-You can run LNbits for yourself, or easily take the service from LNBits.
+We use LNbits as a backend for the faucet. LNbits is a free and open-source lightning wallet that offers a lot of extension. 
+LNbits can run on the lightning-network LND and core-lightning.
 
-Each wallet has its own API keys and there is no limit to the number of wallets you can make.
-
-Extensions add extra functionality to LNbits so it is possible to experiment with a range of cutting-edge technologies on the lightning network. One of the extension ist LNURL-withdraw.
-
-You can generate LNURL-withdraw links wich are also available in form of QR-Codes. With this QR-Codes every wallet that supports LNURL-withdraw can remain the amount which is defined.
-
-Generating vouchers in large quantities by the GUI is painful. Therefore you can use this script.
-
-
+In addition an e-mail address is required to check the request and to send the responses.
 
 
 <!-- GETTING STARTED -->
@@ -142,7 +136,7 @@ LightningMailFaucet is released under the terms of the MIT license. See [https:/
 
 f418.me - [f418_me](https://twitter.com/f418_me) - info@f418.me
 
-Project Link: [https://github.com/f418me/LNBitsVoucherGenerator](https://github.com/f418me/LightningMailFaucet)
+Project Link: [https://github.com/f418me/LightningMailFaucet](https://github.com/f418me/LightningMailFaucet)
 
 
 
