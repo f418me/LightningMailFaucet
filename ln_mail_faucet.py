@@ -34,13 +34,13 @@ def extract_lightning_invoice_from_email(email_content):
         for part in msg.walk():
             # Überprüfen, ob der Teil Text enthält
             if part.get_content_type() == 'text/plain' or part.get_content_type() == 'text/html':
-                text = part.get_payload(decode=True).decode()
+                text = part.get_payload(decode=True).decode(errors='replace')
                 lightning_invoice = extract_lightning_invoice_from_text(text)
                 if lightning_invoice:
                     return lightning_invoice
     else:
         # Wenn die E-Mail nur einen Teil hat
-        text = msg.get_payload(decode=True).decode()
+        text = msg.get_payload(decode=True).decode(errors='replace')
         lightning_invoice = extract_lightning_invoice_from_text(text)
         if lightning_invoice:
             return lightning_invoice
@@ -241,7 +241,7 @@ async def main():
                                                                            database.getTotalPayedSats(),
                                                                            database.getNumberOfUsers())
                                                 else:
-                                                    log.info('Payment could not be don. Response is: ' + res)
+                                                    log.info('Payment could not be don. Response is: ' + str(res))
                                                     sendmail.send_response(mail_from, 'WRONG',
                                                                            0,
                                                                            0, 0)
