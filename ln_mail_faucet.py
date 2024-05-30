@@ -7,9 +7,9 @@ import re
 import csv
 
 from aiohttp.client import ClientSession
-from pylnbits.user_wallet import UserWallet
 from datetime import datetime
-from pylnbits.config import Config as LNBitsConfig
+from pyalby import Account, Invoice, Payment
+
 
 from mail_response import SendResponse
 from config import Config
@@ -98,12 +98,12 @@ def check_email_domain(mail_from, domains):
     mail_domain = mail_from.split('@')[-1].split('.')[-1].split('>')[0]
 
     # Erlaubte Domains in eine Liste umwandeln
-    allowed_domains = domains.split(',')
+    allowed_domains = domains.split(',') if domains else []
     log.debug(f"mail_domain: {mail_domain}")
     log.debug(f"allowed_domains: {allowed_domains}")
 
     # Überprüfen, ob die E-Mail-Domain in der Liste der erlaubten Domains enthalten ist
-    if mail_domain in allowed_domains:
+    if not allowed_domains or mail_domain in allowed_domains:
         return True
     else:
         return False
@@ -113,22 +113,21 @@ def is_valid_email(email):
     return re.match(pattern, email) is not None
 
 async def main():
-    # INITIALIZE the pylnbits with your config file
-    c = LNBitsConfig(in_key=config.LNBITS_IN_KEY, admin_key=config.LNBITS_ADMIN_KEY, lnbits_url=config.LNBITS_URL)
-    url = c.lnbits_url
-    log.debug(f"url: {url}")
-    log.debug(f"headers: {c.headers()}")
-    log.debug(f"admin_headers: {c.admin_headers()}")
 
     with open(csv_file, 'r') as file:
         reader = csv.reader(file)
         domain_list = [row[0] for row in reader]
 
     async with ClientSession() as session:
-        # GET wallet details
-        uw = UserWallet(c, session)
-        user_wallet = await uw.get_wallet_details()
-        log.info(f"user wallet info : {user_wallet}")
+
+        account = Account()
+        invoice = Invoice()
+        payment = Payment()
+
+        # Fetch account summary
+        summary_data = account.get_account_summary()
+        log.debug("Account Summary:", summary_data)
+
 
         # Reading E-Mails as documented and described unter:
         # https://humberto.io/blog/sending-and-receiving-emails-with-python/
@@ -209,7 +208,7 @@ async def main():
                                             ln_invoice = ''
 
                                         log.info(f'Clean LN Invoice:' + ln_invoice)
-                                        decoded = await uw.get_decoded(ln_invoice)
+                                        decoded = invoice.decode_invoice(ln_invoice)
                                         log.debug(decoded)
 
                                         if 'message' in decoded:
@@ -222,17 +221,15 @@ async def main():
                                         if is_valid:
                                             amount = 0
                                             amount_of_user = database.getTotalAmountOfUser(email_only)
-                                            if 'amount_msat' in decoded:
-                                                amount = int(int(decoded['amount_msat']) / 1000)
+                                            if 'msatoshi' in decoded:
+                                                amount = int(int(decoded['msatoshi']) / 1000)
                                             if amount == 0:
                                                 log.info('Amount 0 or not set: ' + str(amount))
                                                 sendmail.send_response(mail_from, 'AMOUNT_ZERO',
                                                                        database.getTotalAmountOfUser(email_only),
                                                                        database.getTotalPayedSats(), database.getNumberOfUsers())
                                             elif amount_of_user + amount <= int(config.MAX_AMOUNT):
-                                                bolt = ln_invoice
-                                                body = {"out": True, "bolt11": bolt}
-                                                res = await uw.pay_invoice(True, bolt)
+                                                res = payment.bolt11_payment(ln_invoice)
 
                                                 if 'payment_hash' in res:
                                                     database.addPayment(email_only, amount, datetime.now())

@@ -1,5 +1,6 @@
-aiohttp~=3.7.4.post0
-pylnbits~=0.0.6
-PyYAML~=5.4.1
+aiohttp
+PyYAML
 python-dotenv~=1.0.0
 redmail~=0.6.0
+pyalby~=0.0.1
+lnurl
