@@ -65,10 +65,13 @@ During Lightning Workshops we often use a faucet to give the participants some s
 There are other possibility to do that with LNURL-withdraw QR-Codes. But we recognized that it is better to first only use the protocol layer when explaining the lightning network.
 Therefore we decided to use a faucet which can pay invoices directly.
 
-We use LNbits as a backend for the faucet. LNbits is a free and open-source lightning wallet that offers a lot of extension. 
-LNbits can run on the lightning-network LND and core-lightning.
+We use Alby Wallet as a backend for the faucet. 
 
-In addition an e-mail address is required to check the request and to send the responses.
+You can also use LNBits as a backend. Currently you can use Tag 0.1.0 for that. Or work on the Branch feature-lnbits.
+
+In addition an e-mail address is required to check the invoices which are send to you.
+To send back a respone e-mail we use the GMail API. This is also configurable in the .env file. Not using the GMail API is also possible. 
+You can also use your SMTP Server. We use GMail API because we can avoid some problems with the spam filter.
 
 
 <!-- GETTING STARTED -->
